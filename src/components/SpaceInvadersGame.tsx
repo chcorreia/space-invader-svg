@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion } from "@/lib/sounds";
 
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 480;
