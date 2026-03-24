@@ -85,6 +85,7 @@ function initGame(): GameState {
     invaders,
     bullets: [],
     enemyBullets: [],
+    explosions: [],
     score: 0,
     lives: 3,
     invaderDir: 1,
