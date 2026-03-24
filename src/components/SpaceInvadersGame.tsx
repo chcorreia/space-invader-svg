@@ -267,13 +267,27 @@ export default function SpaceInvadersGame() {
       }
 
       // Enemy bullet-player collision
-      for (const bullet of g.enemyBullets) {
-        if (collides(bullet, g.player)) {
-          bullet.y = CANVAS_HEIGHT + 100;
-          g.lives--;
-          if (g.lives <= 0) g.gameOver = true;
+      if (g.playerRespawnTimer > 0) {
+        g.playerRespawnTimer--;
+      } else {
+        for (const bullet of g.enemyBullets) {
+          if (collides(bullet, g.player)) {
+            bullet.y = CANVAS_HEIGHT + 100;
+            g.lives--;
+            g.explosions.push({ x: g.player.x + PLAYER_WIDTH / 2, y: g.player.y + PLAYER_HEIGHT / 2, frame: 0, maxFrames: 30, color: "#00ff00", size: 35 });
+            playPlayerExplosion();
+            if (g.lives <= 0) {
+              g.gameOver = true;
+            } else {
+              g.playerRespawnTimer = 60;
+            }
+            break;
+          }
         }
       }
+
+      // Update explosions
+      g.explosions = g.explosions.filter((e) => { e.frame++; return e.frame < e.maxFrames; });
 
       // Check invaders reaching player
       for (const inv of aliveInvaders) {
