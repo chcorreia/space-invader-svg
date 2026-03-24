@@ -92,6 +92,7 @@ function initGame(): GameState {
     invaderSpeed: 1,
     gameOver: false,
     won: false,
+    playerRespawnTimer: 0,
     stars: createStars(80),
   };
 }
