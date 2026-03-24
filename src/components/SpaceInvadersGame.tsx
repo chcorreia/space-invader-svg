@@ -31,17 +31,28 @@ interface Bullet {
   dy: number;
 }
 
+interface Explosion {
+  x: number;
+  y: number;
+  frame: number;
+  maxFrames: number;
+  color: string;
+  size: number;
+}
+
 interface GameState {
   player: Entity;
   invaders: (Entity & { row: number })[];
   bullets: Bullet[];
   enemyBullets: Bullet[];
+  explosions: Explosion[];
   score: number;
   lives: number;
   invaderDir: number;
   invaderSpeed: number;
   gameOver: boolean;
   won: boolean;
+  playerRespawnTimer: number;
   stars: { x: number; y: number; size: number; speed: number }[];
 }
 
