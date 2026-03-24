@@ -318,8 +318,34 @@ export default function SpaceInvadersGame() {
         if (inv.alive) drawInvader(ctx, inv.x, inv.y, inv.row, Math.floor(frame / 30));
       }
 
-      // Player
-      drawPlayer(ctx, g.player.x, g.player.y);
+      // Player (blink during respawn)
+      if (g.playerRespawnTimer <= 0 || Math.floor(frame / 4) % 2 === 0) {
+        drawPlayer(ctx, g.player.x, g.player.y);
+      }
+
+      // Explosions
+      for (const e of g.explosions) {
+        const progress = e.frame / e.maxFrames;
+        const radius = e.size * progress;
+        const alpha = 1 - progress;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, radius * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Particles
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2 + progress * 2;
+          const dist = radius * 1.2;
+          ctx.fillStyle = e.color;
+          ctx.fillRect(e.x + Math.cos(angle) * dist - 2, e.y + Math.sin(angle) * dist - 2, 4, 4);
+        }
+        ctx.globalAlpha = 1;
+      }
 
       // Bullets
       for (const b of g.bullets) drawBullet(ctx, b.x, b.y, false);
