@@ -259,6 +259,9 @@ export default function SpaceInvadersGame() {
             bullet.y = -100;
             g.score += (INVADER_ROWS - inv.row) * 10;
             g.invaderSpeed = 1 + (g.invaders.filter((i) => !i.alive).length / g.invaders.length) * 3;
+            const color = INVADER_COLORS[inv.row % INVADER_COLORS.length];
+            g.explosions.push({ x: inv.x + inv.width / 2, y: inv.y + inv.height / 2, frame: 0, maxFrames: 12, color, size: 20 });
+            playEnemyExplosion();
           }
         }
       }
