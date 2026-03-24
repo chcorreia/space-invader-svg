@@ -215,9 +215,10 @@ export default function SpaceInvadersGame() {
       // Input
       if (keysRef.current.has("ArrowLeft")) g.player.x = Math.max(0, g.player.x - PLAYER_SPEED);
       if (keysRef.current.has("ArrowRight")) g.player.x = Math.min(CANVAS_WIDTH - PLAYER_WIDTH, g.player.x + PLAYER_SPEED);
-      if (keysRef.current.has(" ") && frame - lastShotRef.current > 15) {
+      if (keysRef.current.has(" ") && frame - lastShotRef.current > 15 && g.bullets.length < 3 && g.playerRespawnTimer <= 0) {
         g.bullets.push({ x: g.player.x + PLAYER_WIDTH / 2 - 2, y: g.player.y, dy: -BULLET_SPEED });
         lastShotRef.current = frame;
+        playPlayerShoot();
       }
 
       // Move bullets
