@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion } from "@/lib/sounds";
 
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 480;
@@ -30,17 +31,28 @@ interface Bullet {
   dy: number;
 }
 
+interface Explosion {
+  x: number;
+  y: number;
+  frame: number;
+  maxFrames: number;
+  color: string;
+  size: number;
+}
+
 interface GameState {
   player: Entity;
   invaders: (Entity & { row: number })[];
   bullets: Bullet[];
   enemyBullets: Bullet[];
+  explosions: Explosion[];
   score: number;
   lives: number;
   invaderDir: number;
   invaderSpeed: number;
   gameOver: boolean;
   won: boolean;
+  playerRespawnTimer: number;
   stars: { x: number; y: number; size: number; speed: number }[];
 }
 
@@ -73,12 +85,14 @@ function initGame(): GameState {
     invaders,
     bullets: [],
     enemyBullets: [],
+    explosions: [],
     score: 0,
     lives: 3,
     invaderDir: 1,
     invaderSpeed: 1,
     gameOver: false,
     won: false,
+    playerRespawnTimer: 0,
     stars: createStars(80),
   };
 }
@@ -201,9 +215,10 @@ export default function SpaceInvadersGame() {
       // Input
       if (keysRef.current.has("ArrowLeft")) g.player.x = Math.max(0, g.player.x - PLAYER_SPEED);
       if (keysRef.current.has("ArrowRight")) g.player.x = Math.min(CANVAS_WIDTH - PLAYER_WIDTH, g.player.x + PLAYER_SPEED);
-      if (keysRef.current.has(" ") && frame - lastShotRef.current > 15) {
+      if (keysRef.current.has(" ") && frame - lastShotRef.current > 15 && g.bullets.length < 3 && g.playerRespawnTimer <= 0) {
         g.bullets.push({ x: g.player.x + PLAYER_WIDTH / 2 - 2, y: g.player.y, dy: -BULLET_SPEED });
         lastShotRef.current = frame;
+        playPlayerShoot();
       }
 
       // Move bullets
@@ -232,6 +247,7 @@ export default function SpaceInvadersGame() {
       for (const inv of aliveInvaders) {
         if (Math.random() < INVADER_SHOOT_CHANCE) {
           g.enemyBullets.push({ x: inv.x + inv.width / 2 - 2, y: inv.y + inv.height, dy: INVADER_BULLET_SPEED });
+          playEnemyShoot();
         }
       }
 
@@ -243,18 +259,35 @@ export default function SpaceInvadersGame() {
             bullet.y = -100;
             g.score += (INVADER_ROWS - inv.row) * 10;
             g.invaderSpeed = 1 + (g.invaders.filter((i) => !i.alive).length / g.invaders.length) * 3;
+            const color = INVADER_COLORS[inv.row % INVADER_COLORS.length];
+            g.explosions.push({ x: inv.x + inv.width / 2, y: inv.y + inv.height / 2, frame: 0, maxFrames: 12, color, size: 20 });
+            playEnemyExplosion();
           }
         }
       }
 
       // Enemy bullet-player collision
-      for (const bullet of g.enemyBullets) {
-        if (collides(bullet, g.player)) {
-          bullet.y = CANVAS_HEIGHT + 100;
-          g.lives--;
-          if (g.lives <= 0) g.gameOver = true;
+      if (g.playerRespawnTimer > 0) {
+        g.playerRespawnTimer--;
+      } else {
+        for (const bullet of g.enemyBullets) {
+          if (collides(bullet, g.player)) {
+            bullet.y = CANVAS_HEIGHT + 100;
+            g.lives--;
+            g.explosions.push({ x: g.player.x + PLAYER_WIDTH / 2, y: g.player.y + PLAYER_HEIGHT / 2, frame: 0, maxFrames: 30, color: "#00ff00", size: 35 });
+            playPlayerExplosion();
+            if (g.lives <= 0) {
+              g.gameOver = true;
+            } else {
+              g.playerRespawnTimer = 60;
+            }
+            break;
+          }
         }
       }
+
+      // Update explosions
+      g.explosions = g.explosions.filter((e) => { e.frame++; return e.frame < e.maxFrames; });
 
       // Check invaders reaching player
       for (const inv of aliveInvaders) {
@@ -285,8 +318,34 @@ export default function SpaceInvadersGame() {
         if (inv.alive) drawInvader(ctx, inv.x, inv.y, inv.row, Math.floor(frame / 30));
       }
 
-      // Player
-      drawPlayer(ctx, g.player.x, g.player.y);
+      // Player (blink during respawn)
+      if (g.playerRespawnTimer <= 0 || Math.floor(frame / 4) % 2 === 0) {
+        drawPlayer(ctx, g.player.x, g.player.y);
+      }
+
+      // Explosions
+      for (const e of g.explosions) {
+        const progress = e.frame / e.maxFrames;
+        const radius = e.size * progress;
+        const alpha = 1 - progress;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, radius * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Particles
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2 + progress * 2;
+          const dist = radius * 1.2;
+          ctx.fillStyle = e.color;
+          ctx.fillRect(e.x + Math.cos(angle) * dist - 2, e.y + Math.sin(angle) * dist - 2, 4, 4);
+        }
+        ctx.globalAlpha = 1;
+      }
 
       // Bullets
       for (const b of g.bullets) drawBullet(ctx, b.x, b.y, false);
