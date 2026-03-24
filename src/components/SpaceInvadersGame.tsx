@@ -247,6 +247,7 @@ export default function SpaceInvadersGame() {
       for (const inv of aliveInvaders) {
         if (Math.random() < INVADER_SHOOT_CHANCE) {
           g.enemyBullets.push({ x: inv.x + inv.width / 2 - 2, y: inv.y + inv.height, dy: INVADER_BULLET_SPEED });
+          playEnemyShoot();
         }
       }
 
