@@ -174,11 +174,14 @@ export default function SpaceInvadersGame() {
 
   const resetGame = () => {
     gameRef.current = initGame();
+    frameRef.current = 0;
+    lastShotRef.current = 0;
     setDisplayScore(0);
     setDisplayLives(3);
     setGameOver(false);
     setWon(false);
-    setStarted(true);
+    setStarted(false);
+    setTimeout(() => setStarted(true), 0);
   };
 
   useEffect(() => {
