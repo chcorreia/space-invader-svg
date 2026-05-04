@@ -257,6 +257,7 @@ export default function SpaceInvadersGame() {
       if (e.key === "Escape") {
         pausedRef.current = !pausedRef.current;
         setPaused(pausedRef.current);
+        if (pausedRef.current) suspendAudio(); else resumeAudio();
         return;
       }
       keysRef.current.add(e.key);
