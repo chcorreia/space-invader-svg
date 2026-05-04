@@ -440,8 +440,18 @@ export default function SpaceInvadersGame() {
       }
 
       // Invaders
-      for (const inv of g.invaders) {
-        if (inv.alive) drawInvader(ctx, inv.x, inv.y, inv.row, Math.floor(frame / 30));
+      const flashOn = Math.floor(frame / 6) % 2 === 0;
+      for (let i = 0; i < g.invaders.length; i++) {
+        const inv = g.invaders[i];
+        if (!inv.alive) continue;
+        const isBoss = g.bossIndex === i && g.bossEndFrame !== null;
+        if (isBoss && flashOn) {
+          ctx.save();
+          ctx.shadowColor = "#ffff00";
+          ctx.shadowBlur = 20;
+        }
+        drawInvader(ctx, inv.x, inv.y, isBoss && flashOn ? -1 : inv.row, Math.floor(frame / 30));
+        if (isBoss && flashOn) ctx.restore();
       }
 
       // Player (blink during respawn)
