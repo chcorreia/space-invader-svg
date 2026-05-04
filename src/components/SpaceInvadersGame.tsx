@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren, playRaverKill } from "@/lib/sounds";
+import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren, playRaverKill, playTada } from "@/lib/sounds";
 
 function LifeIcon() {
   return (
@@ -87,6 +87,7 @@ interface GameState {
   bossLastShot: number;
   raverCount: number;
   nextRaverDelay: number;
+  nextLifeScore: number;
   stopSiren: (() => void) | null;
 }
 
@@ -141,6 +142,7 @@ function initGame(): GameState {
     bossLastShot: 0,
     raverCount: 0,
     nextRaverDelay: 0,
+    nextLifeScore: 5000,
     stopSiren: null,
   };
 }
@@ -326,16 +328,16 @@ export default function SpaceInvadersGame() {
         }
       }
 
-      // Raver scheduling (wave 3+)
+      // Raver scheduling (wave 1+)
       if (g.waveStartFrame === 0) {
         g.waveStartFrame = frame;
         g.raverCount = 0;
-        if (g.wave >= 3) {
-          g.nextRaverDelay = 60 * (30 + Math.random() * 20); // 30-50s
-          g.bossActivateFrame = frame + g.nextRaverDelay;
-          g.bossEndFrame = null;
-          g.bossIndex = null;
-        }
+        const lower = Math.max(0, 30 - 5 * (g.wave - 1));
+        const upper = Math.max(20, 50 - 5 * (g.wave - 1));
+        g.nextRaverDelay = 60 * (lower + Math.random() * (upper - lower));
+        g.bossActivateFrame = frame + g.nextRaverDelay;
+        g.bossEndFrame = null;
+        g.bossIndex = null;
       }
       // Activate raver
       if (g.bossActivateFrame !== null && frame >= g.bossActivateFrame && g.bossEndFrame === null) {
@@ -428,8 +430,16 @@ export default function SpaceInvadersGame() {
         if (inv.y + inv.height >= g.player.y) g.gameOver = true;
       }
 
+      // Extra life every 5000 points
+      while (g.score >= g.nextLifeScore) {
+        g.lives++;
+        g.nextLifeScore += 5000;
+      }
+
       // Next wave
       if (aliveInvaders.length === 0) {
+        playTada();
+        if (g.wave % 10 === 0) g.lives++;
         g.wave++;
         g.baseSpeed *= 1.2;
         g.invaderSpeed = g.baseSpeed;
