@@ -331,7 +331,7 @@ export default function SpaceInvadersGame() {
       // Next wave
       if (aliveInvaders.length === 0) {
         g.wave++;
-        g.baseSpeed *= 1.05;
+        g.baseSpeed *= 1.2;
         g.invaderSpeed = g.baseSpeed;
         g.invaderDir = 1;
         g.invaders = createInvaders();
