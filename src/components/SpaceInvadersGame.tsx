@@ -444,8 +444,10 @@ export default function SpaceInvadersGame() {
       g.explosions = g.explosions.filter((e) => { e.frame++; return e.frame < e.maxFrames; });
 
       // Check invaders reaching player
-      for (const inv of aliveInvaders) {
-        if (inv.y + inv.height >= g.player.y) g.gameOver = true;
+      if (!godModeRef.current) {
+        for (const inv of aliveInvaders) {
+          if (inv.y + inv.height >= g.player.y) g.gameOver = true;
+        }
       }
 
       // Extra life every 5000 points
