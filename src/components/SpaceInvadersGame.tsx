@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion } from "@/lib/sounds";
+import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren } from "@/lib/sounds";
 
 function LifeIcon() {
   return (
@@ -50,6 +50,9 @@ interface Bullet {
   x: number;
   y: number;
   dy: number;
+  dx?: number;
+  homing?: boolean;
+  color?: string;
 }
 
 interface Explosion {
@@ -77,6 +80,12 @@ interface GameState {
   stars: { x: number; y: number; size: number; speed: number }[];
   wave: number;
   baseSpeed: number;
+  waveStartFrame: number;
+  bossIndex: number | null;
+  bossActivateFrame: number | null;
+  bossEndFrame: number | null;
+  bossLastShot: number;
+  stopSiren: (() => void) | null;
 }
 
 function createStars(count: number) {
@@ -123,6 +132,12 @@ function initGame(): GameState {
     stars: createStars(80),
     wave: 1,
     baseSpeed: 1,
+    waveStartFrame: 0,
+    bossIndex: null,
+    bossActivateFrame: null,
+    bossEndFrame: null,
+    bossLastShot: 0,
+    stopSiren: null,
   };
 }
 
@@ -151,7 +166,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, x: number, y: number) {
 }
 
 function drawInvader(ctx: CanvasRenderingContext2D, x: number, y: number, row: number, frame: number) {
-  const color = INVADER_COLORS[row % INVADER_COLORS.length];
+  const color = row === -1 ? "#ffff00" : INVADER_COLORS[row % INVADER_COLORS.length];
   ctx.fillStyle = color;
   const w = INVADER_WIDTH;
   const h = INVADER_HEIGHT;
@@ -174,11 +189,18 @@ function drawInvader(ctx: CanvasRenderingContext2D, x: number, y: number, row: n
   ctx.fillRect(x + w - 14, y + h - 6, 4, 6);
 }
 
-function drawBullet(ctx: CanvasRenderingContext2D, x: number, y: number, isEnemy: boolean) {
-  ctx.fillStyle = isEnemy ? "#ff0000" : "#00ffff";
-  ctx.shadowColor = isEnemy ? "#ff0000" : "#00ffff";
+function drawBullet(ctx: CanvasRenderingContext2D, b: Bullet, isEnemy: boolean) {
+  const color = b.color || (isEnemy ? "#ff0000" : "#00ffff");
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
   ctx.shadowBlur = 8;
-  ctx.fillRect(x, y, BULLET_WIDTH, BULLET_HEIGHT);
+  if (b.homing) {
+    ctx.beginPath();
+    ctx.arc(b.x + BULLET_WIDTH / 2, b.y + BULLET_HEIGHT / 2, 5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillRect(b.x, b.y, BULLET_WIDTH, BULLET_HEIGHT);
+  }
   ctx.shadowBlur = 0;
 }
 
@@ -238,6 +260,7 @@ export default function SpaceInvadersGame() {
     const loop = () => {
       const g = gameRef.current;
       if (g.gameOver || g.won) {
+        if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
         setGameOver(g.gameOver);
         setWon(g.won);
         return;
@@ -257,7 +280,21 @@ export default function SpaceInvadersGame() {
 
       // Move bullets
       g.bullets = g.bullets.filter((b) => { b.y += b.dy; return b.y > -BULLET_HEIGHT; });
-      g.enemyBullets = g.enemyBullets.filter((b) => { b.y += b.dy; return b.y < CANVAS_HEIGHT; });
+      const playerCx = g.player.x + PLAYER_WIDTH / 2;
+      const homingMaxDx = PLAYER_SPEED * 0.7; // 30% slower than player horizontally
+      g.enemyBullets = g.enemyBullets.filter((b) => {
+        if (b.homing) {
+          const targetDx = playerCx - (b.x + BULLET_WIDTH / 2);
+          const desired = Math.sign(targetDx) * Math.min(Math.abs(targetDx), homingMaxDx);
+          // smooth steering
+          b.dx = (b.dx ?? 0) + (desired - (b.dx ?? 0)) * 0.1;
+          b.x += b.dx;
+        } else if (b.dx) {
+          b.x += b.dx;
+        }
+        b.y += b.dy;
+        return b.y < CANVAS_HEIGHT && b.x > -20 && b.x < CANVAS_WIDTH + 20;
+      });
 
       // Invader movement
       if (frame % Math.max(1, Math.floor(30 / g.invaderSpeed)) === 0) {
@@ -281,6 +318,49 @@ export default function SpaceInvadersGame() {
       for (const inv of aliveInvaders) {
         if (Math.random() < INVADER_SHOOT_CHANCE) {
           g.enemyBullets.push({ x: inv.x + inv.width / 2 - 2, y: inv.y + inv.height, dy: INVADER_BULLET_SPEED });
+          playEnemyShoot();
+        }
+      }
+
+      // Boss scheduling (wave 3+)
+      if (g.waveStartFrame === 0) {
+        g.waveStartFrame = frame;
+        if (g.wave >= 3) {
+          const delay = 60 * (30 + Math.random() * 30); // 30-60s
+          g.bossActivateFrame = frame + delay;
+          g.bossEndFrame = null;
+          g.bossIndex = null;
+        }
+      }
+      // Activate boss
+      if (g.bossActivateFrame !== null && frame >= g.bossActivateFrame && g.bossEndFrame === null) {
+        const aliveIdx = g.invaders.map((inv, i) => inv.alive ? i : -1).filter((i) => i >= 0);
+        if (aliveIdx.length > 0) {
+          g.bossIndex = aliveIdx[Math.floor(Math.random() * aliveIdx.length)];
+          g.bossEndFrame = frame + 60 * 10;
+          g.bossLastShot = 0;
+          if (g.stopSiren) g.stopSiren();
+          g.stopSiren = playSiren();
+        }
+        g.bossActivateFrame = null;
+      }
+      // Boss active
+      if (g.bossEndFrame !== null && g.bossIndex !== null) {
+        const boss = g.invaders[g.bossIndex];
+        if (!boss || !boss.alive || frame >= g.bossEndFrame) {
+          if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
+          g.bossEndFrame = null;
+          g.bossIndex = null;
+        } else if (frame - g.bossLastShot > 60) {
+          g.enemyBullets.push({
+            x: boss.x + boss.width / 2 - 2,
+            y: boss.y + boss.height,
+            dy: INVADER_BULLET_SPEED * 0.5,
+            dx: 0,
+            homing: true,
+            color: "#ffff00",
+          });
+          g.bossLastShot = frame;
           playEnemyShoot();
         }
       }
@@ -337,6 +417,11 @@ export default function SpaceInvadersGame() {
         g.invaders = createInvaders();
         g.bullets = [];
         g.enemyBullets = [];
+        g.waveStartFrame = 0;
+        g.bossIndex = null;
+        g.bossActivateFrame = null;
+        g.bossEndFrame = null;
+        if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
       }
 
       // Stars
@@ -356,8 +441,18 @@ export default function SpaceInvadersGame() {
       }
 
       // Invaders
-      for (const inv of g.invaders) {
-        if (inv.alive) drawInvader(ctx, inv.x, inv.y, inv.row, Math.floor(frame / 30));
+      const flashOn = Math.floor(frame / 6) % 2 === 0;
+      for (let i = 0; i < g.invaders.length; i++) {
+        const inv = g.invaders[i];
+        if (!inv.alive) continue;
+        const isBoss = g.bossIndex === i && g.bossEndFrame !== null;
+        if (isBoss && flashOn) {
+          ctx.save();
+          ctx.shadowColor = "#ffff00";
+          ctx.shadowBlur = 20;
+        }
+        drawInvader(ctx, inv.x, inv.y, isBoss && flashOn ? -1 : inv.row, Math.floor(frame / 30));
+        if (isBoss && flashOn) ctx.restore();
       }
 
       // Player (blink during respawn)
@@ -390,8 +485,8 @@ export default function SpaceInvadersGame() {
       }
 
       // Bullets
-      for (const b of g.bullets) drawBullet(ctx, b.x, b.y, false);
-      for (const b of g.enemyBullets) drawBullet(ctx, b.x, b.y, true);
+      for (const b of g.bullets) drawBullet(ctx, b, false);
+      for (const b of g.enemyBullets) drawBullet(ctx, b, true);
 
       setDisplayScore(g.score);
       setDisplayLives(g.lives);
