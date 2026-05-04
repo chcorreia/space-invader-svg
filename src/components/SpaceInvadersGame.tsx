@@ -80,6 +80,12 @@ interface GameState {
   stars: { x: number; y: number; size: number; speed: number }[];
   wave: number;
   baseSpeed: number;
+  waveStartFrame: number;
+  bossIndex: number | null;
+  bossActivateFrame: number | null;
+  bossEndFrame: number | null;
+  bossLastShot: number;
+  stopSiren: (() => void) | null;
 }
 
 function createStars(count: number) {
