@@ -371,17 +371,20 @@ export default function SpaceInvadersGame() {
         SPACE INVADERS
       </h1>
 
-      <div className="flex gap-8 font-arcade text-xs">
+      <div className="font-arcade text-xs">
         <span className="text-neon-cyan" style={{ textShadow: "0 0 10px hsl(180,100%,50%,0.7)" }}>
           SCORE: {displayScore}
-        </span>
-        <span className="text-neon-magenta" style={{ textShadow: "0 0 10px hsl(300,100%,60%,0.7)" }}>
-          LIVES: {"♥".repeat(displayLives)}
         </span>
       </div>
 
       <div className="relative border-2 border-primary/30 rounded-sm" style={{ boxShadow: "0 0 30px hsl(120,100%,50%,0.15), inset 0 0 30px hsl(120,100%,50%,0.05)" }}>
         <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="block" />
+
+        <div className="absolute top-2 left-2 flex gap-1">
+          {Array.from({ length: displayLives }).map((_, i) => (
+            <LifeIcon key={i} />
+          ))}
+        </div>
 
         {!started && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm gap-6">
