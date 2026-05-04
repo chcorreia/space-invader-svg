@@ -280,7 +280,7 @@ export default function SpaceInvadersGame() {
       // Move bullets
       g.bullets = g.bullets.filter((b) => { b.y += b.dy; return b.y > -BULLET_HEIGHT; });
       const playerCx = g.player.x + PLAYER_WIDTH / 2;
-      const homingMaxDx = INVADER_BULLET_SPEED * 0.7; // 30% slower than... interpret: horizontal speed cap
+      const homingMaxDx = PLAYER_SPEED * 0.7; // 30% slower than player horizontally
       g.enemyBullets = g.enemyBullets.filter((b) => {
         if (b.homing) {
           const targetDx = playerCx - (b.x + BULLET_WIDTH / 2);
