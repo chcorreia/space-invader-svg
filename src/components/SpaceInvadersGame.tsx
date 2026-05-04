@@ -428,7 +428,7 @@ export default function SpaceInvadersGame() {
 
         <div className="absolute top-2 right-2 font-arcade text-xs text-neon-yellow"
              style={{ textShadow: "0 0 10px hsl(60,100%,50%,0.8)" }}>
-          WAVE {toRoman(displayWave)}
+          {toRoman(displayWave)}
         </div>
 
         {!started && (
