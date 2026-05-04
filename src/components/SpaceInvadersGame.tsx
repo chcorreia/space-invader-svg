@@ -412,8 +412,8 @@ export default function SpaceInvadersGame() {
       }
 
       // Bullets
-      for (const b of g.bullets) drawBullet(ctx, b.x, b.y, false);
-      for (const b of g.enemyBullets) drawBullet(ctx, b.x, b.y, true);
+      for (const b of g.bullets) drawBullet(ctx, b, false);
+      for (const b of g.enemyBullets) drawBullet(ctx, b, true);
 
       setDisplayScore(g.score);
       setDisplayLives(g.lives);
