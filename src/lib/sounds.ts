@@ -86,6 +86,43 @@ export function playSiren(): () => void {
   };
 }
 
+export function playTada() {
+  const ctx = getCtx();
+  const start = ctx.currentTime;
+  const notes = [
+    { f: 523.25, t: 0, d: 0.15 },   // C5 short
+    { f: 523.25, t: 0.18, d: 0.5 },  // C5 long
+  ];
+  // Add a bright major chord on the long note
+  const chord = [659.25, 783.99, 1046.5]; // E5, G5, C6
+  for (const n of notes) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(n.f, start + n.t);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.0001, start + n.t);
+    gain.gain.exponentialRampToValueAtTime(0.18, start + n.t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + n.t + n.d);
+    osc.start(start + n.t);
+    osc.stop(start + n.t + n.d + 0.05);
+  }
+  for (const f of chord) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(f, start + 0.18);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.0001, start + 0.18);
+    gain.gain.exponentialRampToValueAtTime(0.1, start + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.7);
+    osc.start(start + 0.18);
+    osc.stop(start + 0.75);
+  }
+}
+
 export function playRaverKill() {
   const ctx = getCtx();
   const start = ctx.currentTime;
