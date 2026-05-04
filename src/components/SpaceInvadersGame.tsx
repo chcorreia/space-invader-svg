@@ -355,8 +355,8 @@ export default function SpaceInvadersGame() {
       if (g.waveStartFrame === 0) {
         g.waveStartFrame = frame;
         g.raverCount = 0;
-        const lower = Math.max(0, 30 - 5 * (g.wave - 1));
-        const upper = Math.max(20, 50 - 5 * (g.wave - 1));
+        const lower = Math.max(5, 30 - 5 * (g.wave - 1));
+        const upper = Math.max(15, 50 - 5 * (g.wave - 1));
         g.nextRaverDelay = 60 * (lower + Math.random() * (upper - lower));
         g.bossActivateFrame = frame + g.nextRaverDelay;
         g.bossEndFrame = null;
