@@ -395,6 +395,7 @@ export default function SpaceInvadersGame() {
 
       setDisplayScore(g.score);
       setDisplayLives(g.lives);
+      setDisplayWave(g.wave);
 
       animFrameRef.current = requestAnimationFrame(loop);
     };
