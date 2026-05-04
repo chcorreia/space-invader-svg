@@ -607,6 +607,22 @@ export default function SpaceInvadersGame() {
             </button>
           </div>
         )}
+
+        {paused && started && !gameOver && !won && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+            <p className="font-arcade text-lg text-primary"
+               style={{ textShadow: "0 0 20px hsl(120,100%,50%,0.8)" }}>
+              GAME PAUSED
+            </p>
+          </div>
+        )}
+
+        {godMode && (
+          <div className="absolute bottom-2 right-2 font-arcade text-[8px] text-neon-yellow"
+               style={{ textShadow: "0 0 10px hsl(60,100%,50%,0.8)" }}>
+            GOD MODE
+          </div>
+        )}
       </div>
 
       <p className="text-muted-foreground font-arcade text-[8px]">← → MOVE &nbsp;&nbsp; SPACE SHOOT</p>
