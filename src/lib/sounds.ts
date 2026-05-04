@@ -86,6 +86,24 @@ export function playSiren(): () => void {
   };
 }
 
+export function playRaverKill() {
+  const ctx = getCtx();
+  const start = ctx.currentTime;
+  for (let i = 0; i < 5; i++) {
+    const t = start + i * 0.08;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(1600, t);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.12, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    osc.start(t);
+    osc.stop(t + 0.08);
+  }
+}
+
 export function playEnemyExplosion() {
   const ctx = getCtx();
   const bufferSize = ctx.sampleRate * 0.15;
