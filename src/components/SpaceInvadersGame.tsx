@@ -249,6 +249,16 @@ export default function SpaceInvadersGame() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "g" || e.key === "G") {
+        godModeRef.current = !godModeRef.current;
+        setGodMode(godModeRef.current);
+        return;
+      }
+      if (e.key === "Escape") {
+        pausedRef.current = !pausedRef.current;
+        setPaused(pausedRef.current);
+        return;
+      }
       keysRef.current.add(e.key);
       if (e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") e.preventDefault();
     };
