@@ -309,11 +309,15 @@ export default function SpaceInvadersGame() {
       const homingMaxDx = PLAYER_SPEED * 0.7; // 30% slower than player horizontally
       g.enemyBullets = g.enemyBullets.filter((b) => {
         if (b.homing) {
-          const targetDx = playerCx - (b.x + BULLET_WIDTH / 2);
-          const desired = Math.sign(targetDx) * Math.min(Math.abs(targetDx), homingMaxDx);
-          // smooth steering
-          b.dx = (b.dx ?? 0) + (desired - (b.dx ?? 0)) * 0.1;
-          b.x += b.dx;
+          const verticalDist = g.player.y - (b.y + BULLET_HEIGHT);
+          if (verticalDist <= PLAYER_HEIGHT) {
+            b.homing = false;
+          } else {
+            const targetDx = playerCx - (b.x + BULLET_WIDTH / 2);
+            const desired = Math.sign(targetDx) * Math.min(Math.abs(targetDx), homingMaxDx);
+            b.dx = (b.dx ?? 0) + (desired - (b.dx ?? 0)) * 0.1;
+            b.x += b.dx;
+          }
         } else if (b.dx) {
           b.x += b.dx;
         }
