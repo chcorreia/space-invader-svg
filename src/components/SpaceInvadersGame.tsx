@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion } from "@/lib/sounds";
 
+function LifeIcon() {
+  return (
+    <svg width="20" height="15" viewBox="0 0 40 30" aria-label="life">
+      <polygon points="20,0 40,30 34,26 20,22 6,26 0,30" fill="#00ff00" />
+      <circle cx="20" cy="12" r="4" fill="#00ffff" />
+      <rect x="17" y="24" width="6" height="4" fill="#ff6600" />
+    </svg>
+  );
+}
+
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 480;
 const PLAYER_WIDTH = 40;
@@ -371,17 +381,20 @@ export default function SpaceInvadersGame() {
         SPACE INVADERS
       </h1>
 
-      <div className="flex gap-8 font-arcade text-xs">
+      <div className="font-arcade text-xs">
         <span className="text-neon-cyan" style={{ textShadow: "0 0 10px hsl(180,100%,50%,0.7)" }}>
           SCORE: {displayScore}
-        </span>
-        <span className="text-neon-magenta" style={{ textShadow: "0 0 10px hsl(300,100%,60%,0.7)" }}>
-          LIVES: {"♥".repeat(displayLives)}
         </span>
       </div>
 
       <div className="relative border-2 border-primary/30 rounded-sm" style={{ boxShadow: "0 0 30px hsl(120,100%,50%,0.15), inset 0 0 30px hsl(120,100%,50%,0.05)" }}>
         <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="block" />
+
+        <div className="absolute top-2 left-2 flex gap-1">
+          {Array.from({ length: displayLives }).map((_, i) => (
+            <LifeIcon key={i} />
+          ))}
+        </div>
 
         {!started && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm gap-6">
