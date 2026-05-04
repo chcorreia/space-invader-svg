@@ -208,6 +208,7 @@ export default function SpaceInvadersGame() {
     lastShotRef.current = 0;
     setDisplayScore(0);
     setDisplayLives(3);
+    setDisplayWave(1);
     setGameOver(false);
     setWon(false);
     setStarted(false);
