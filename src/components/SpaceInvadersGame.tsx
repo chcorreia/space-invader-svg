@@ -505,9 +505,11 @@ export default function SpaceInvadersGame() {
         if (isBoss && flashOn) ctx.restore();
       }
 
-      // Player (blink during respawn)
+      // Player (blink during respawn, transparent in god mode)
       if (g.playerRespawnTimer <= 0 || Math.floor(frame / 4) % 2 === 0) {
+        if (godModeRef.current) ctx.globalAlpha = 0.4;
         drawPlayer(ctx, g.player.x, g.player.y);
+        ctx.globalAlpha = 1;
       }
 
       // Explosions
