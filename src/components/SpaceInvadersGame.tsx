@@ -229,6 +229,10 @@ export default function SpaceInvadersGame() {
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
   const [started, setStarted] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [godMode, setGodMode] = useState(false);
+  const pausedRef = useRef(false);
+  const godModeRef = useRef(false);
 
   const resetGame = () => {
     gameRef.current = initGame();
