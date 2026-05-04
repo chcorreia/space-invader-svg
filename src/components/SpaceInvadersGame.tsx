@@ -423,7 +423,7 @@ export default function SpaceInvadersGame() {
       // Enemy bullet-player collision
       if (g.playerRespawnTimer > 0) {
         g.playerRespawnTimer--;
-      } else {
+      } else if (!godModeRef.current) {
         for (const bullet of g.enemyBullets) {
           if (collides(bullet, g.player)) {
             bullet.y = CANVAS_HEIGHT + 100;
