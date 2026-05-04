@@ -321,6 +321,49 @@ export default function SpaceInvadersGame() {
         }
       }
 
+      // Boss scheduling (wave 3+)
+      if (g.waveStartFrame === 0) {
+        g.waveStartFrame = frame;
+        if (g.wave >= 3) {
+          const delay = 60 * (30 + Math.random() * 30); // 30-60s
+          g.bossActivateFrame = frame + delay;
+          g.bossEndFrame = null;
+          g.bossIndex = null;
+        }
+      }
+      // Activate boss
+      if (g.bossActivateFrame !== null && frame >= g.bossActivateFrame && g.bossEndFrame === null) {
+        const aliveIdx = g.invaders.map((inv, i) => inv.alive ? i : -1).filter((i) => i >= 0);
+        if (aliveIdx.length > 0) {
+          g.bossIndex = aliveIdx[Math.floor(Math.random() * aliveIdx.length)];
+          g.bossEndFrame = frame + 60 * 10;
+          g.bossLastShot = 0;
+          if (g.stopSiren) g.stopSiren();
+          g.stopSiren = playSiren();
+        }
+        g.bossActivateFrame = null;
+      }
+      // Boss active
+      if (g.bossEndFrame !== null && g.bossIndex !== null) {
+        const boss = g.invaders[g.bossIndex];
+        if (!boss || !boss.alive || frame >= g.bossEndFrame) {
+          if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
+          g.bossEndFrame = null;
+          g.bossIndex = null;
+        } else if (frame - g.bossLastShot > 60) {
+          g.enemyBullets.push({
+            x: boss.x + boss.width / 2 - 2,
+            y: boss.y + boss.height,
+            dy: INVADER_BULLET_SPEED * 0.5,
+            dx: 0,
+            homing: true,
+            color: "#ffff00",
+          });
+          g.bossLastShot = frame;
+          playEnemyShoot();
+        }
+      }
+
       // Bullet-invader collision
       for (const bullet of g.bullets) {
         for (const inv of g.invaders) {
