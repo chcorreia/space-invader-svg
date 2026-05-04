@@ -189,11 +189,18 @@ function drawInvader(ctx: CanvasRenderingContext2D, x: number, y: number, row: n
   ctx.fillRect(x + w - 14, y + h - 6, 4, 6);
 }
 
-function drawBullet(ctx: CanvasRenderingContext2D, x: number, y: number, isEnemy: boolean) {
-  ctx.fillStyle = isEnemy ? "#ff0000" : "#00ffff";
-  ctx.shadowColor = isEnemy ? "#ff0000" : "#00ffff";
+function drawBullet(ctx: CanvasRenderingContext2D, b: Bullet, isEnemy: boolean) {
+  const color = b.color || (isEnemy ? "#ff0000" : "#00ffff");
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
   ctx.shadowBlur = 8;
-  ctx.fillRect(x, y, BULLET_WIDTH, BULLET_HEIGHT);
+  if (b.homing) {
+    ctx.beginPath();
+    ctx.arc(b.x + BULLET_WIDTH / 2, b.y + BULLET_HEIGHT / 2, 5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillRect(b.x, b.y, BULLET_WIDTH, BULLET_HEIGHT);
+  }
   ctx.shadowBlur = 0;
 }
 
