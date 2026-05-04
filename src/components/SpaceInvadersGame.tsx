@@ -260,6 +260,7 @@ export default function SpaceInvadersGame() {
     const loop = () => {
       const g = gameRef.current;
       if (g.gameOver || g.won) {
+        if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
         setGameOver(g.gameOver);
         setWon(g.won);
         return;
