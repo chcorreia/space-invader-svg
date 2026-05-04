@@ -6,6 +6,9 @@ function getCtx(): AudioContext {
   return audioCtx;
 }
 
+export function suspendAudio() { audioCtx?.suspend(); }
+export function resumeAudio() { audioCtx?.resume(); }
+
 export function playPlayerShoot() {
   const ctx = getCtx();
   const osc = ctx.createOscillator();

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren, playRaverKill, playTada } from "@/lib/sounds";
+import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren, playRaverKill, playTada, suspendAudio, resumeAudio } from "@/lib/sounds";
 
 function LifeIcon() {
   return (
@@ -257,6 +257,7 @@ export default function SpaceInvadersGame() {
       if (e.key === "Escape") {
         pausedRef.current = !pausedRef.current;
         setPaused(pausedRef.current);
+        if (pausedRef.current) suspendAudio(); else resumeAudio();
         return;
       }
       keysRef.current.add(e.key);
@@ -308,11 +309,15 @@ export default function SpaceInvadersGame() {
       const homingMaxDx = PLAYER_SPEED * 0.7; // 30% slower than player horizontally
       g.enemyBullets = g.enemyBullets.filter((b) => {
         if (b.homing) {
-          const targetDx = playerCx - (b.x + BULLET_WIDTH / 2);
-          const desired = Math.sign(targetDx) * Math.min(Math.abs(targetDx), homingMaxDx);
-          // smooth steering
-          b.dx = (b.dx ?? 0) + (desired - (b.dx ?? 0)) * 0.1;
-          b.x += b.dx;
+          const verticalDist = g.player.y - (b.y + BULLET_HEIGHT);
+          if (verticalDist <= PLAYER_HEIGHT) {
+            b.homing = false;
+          } else {
+            const targetDx = playerCx - (b.x + BULLET_WIDTH / 2);
+            const desired = Math.sign(targetDx) * Math.min(Math.abs(targetDx), homingMaxDx);
+            b.dx = (b.dx ?? 0) + (desired - (b.dx ?? 0)) * 0.1;
+            b.x += b.dx;
+          }
         } else if (b.dx) {
           b.x += b.dx;
         }
