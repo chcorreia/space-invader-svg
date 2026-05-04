@@ -197,6 +197,7 @@ export default function SpaceInvadersGame() {
   const lastShotRef = useRef(0);
   const [displayScore, setDisplayScore] = useState(0);
   const [displayLives, setDisplayLives] = useState(3);
+  const [displayWave, setDisplayWave] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
   const [started, setStarted] = useState(false);
