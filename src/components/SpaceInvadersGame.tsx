@@ -88,7 +88,7 @@ function createStars(count: number) {
   }));
 }
 
-function initGame(): GameState {
+function createInvaders(): (Entity & { row: number })[] {
   const invaders: (Entity & { row: number })[] = [];
   const startX = (CANVAS_WIDTH - (INVADER_COLS * (INVADER_WIDTH + INVADER_PADDING))) / 2;
   for (let row = 0; row < INVADER_ROWS; row++) {
@@ -103,9 +103,13 @@ function initGame(): GameState {
       });
     }
   }
+  return invaders;
+}
+
+function initGame(): GameState {
   return {
     player: { x: CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2, y: CANVAS_HEIGHT - 50, width: PLAYER_WIDTH, height: PLAYER_HEIGHT, alive: true },
-    invaders,
+    invaders: createInvaders(),
     bullets: [],
     enemyBullets: [],
     explosions: [],
@@ -117,6 +121,8 @@ function initGame(): GameState {
     won: false,
     playerRespawnTimer: 0,
     stars: createStars(80),
+    wave: 1,
+    baseSpeed: 1,
   };
 }
 
