@@ -85,6 +85,8 @@ interface GameState {
   bossActivateFrame: number | null;
   bossEndFrame: number | null;
   bossLastShot: number;
+  raverCount: number;
+  nextRaverDelay: number;
   stopSiren: (() => void) | null;
 }
 
@@ -137,6 +139,8 @@ function initGame(): GameState {
     bossActivateFrame: null,
     bossEndFrame: null,
     bossLastShot: 0,
+    raverCount: 0,
+    nextRaverDelay: 0,
     stopSiren: null,
   };
 }
