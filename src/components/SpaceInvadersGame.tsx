@@ -451,7 +451,7 @@ export default function SpaceInvadersGame() {
       // Check invaders reaching player
       if (!godModeRef.current) {
         for (const inv of aliveInvaders) {
-          if (inv.y + inv.height >= g.player.y) g.gameOver = true;
+          if (inv.y + inv.height >= CANVAS_HEIGHT) g.gameOver = true;
         }
       }
 
