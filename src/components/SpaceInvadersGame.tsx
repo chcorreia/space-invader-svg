@@ -426,6 +426,11 @@ export default function SpaceInvadersGame() {
           ))}
         </div>
 
+        <div className="absolute top-2 right-2 font-arcade text-xs text-neon-yellow"
+             style={{ textShadow: "0 0 10px hsl(60,100%,50%,0.8)" }}>
+          WAVE {toRoman(displayWave)}
+        </div>
+
         {!started && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm gap-6">
             <p className="text-primary font-arcade text-sm animate-pulse"
