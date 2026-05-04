@@ -50,6 +50,9 @@ interface Bullet {
   x: number;
   y: number;
   dy: number;
+  dx?: number;
+  homing?: boolean;
+  color?: string;
 }
 
 interface Explosion {
