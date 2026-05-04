@@ -132,6 +132,12 @@ function initGame(): GameState {
     stars: createStars(80),
     wave: 1,
     baseSpeed: 1,
+    waveStartFrame: 0,
+    bossIndex: null,
+    bossActivateFrame: null,
+    bossEndFrame: null,
+    bossLastShot: 0,
+    stopSiren: null,
   };
 }
 
