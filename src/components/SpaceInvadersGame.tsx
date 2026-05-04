@@ -326,17 +326,18 @@ export default function SpaceInvadersGame() {
         }
       }
 
-      // Boss scheduling (wave 3+)
+      // Raver scheduling (wave 3+)
       if (g.waveStartFrame === 0) {
         g.waveStartFrame = frame;
+        g.raverCount = 0;
         if (g.wave >= 3) {
-          const delay = 60 * (30 + Math.random() * 30); // 30-60s
-          g.bossActivateFrame = frame + delay;
+          g.nextRaverDelay = 60 * (30 + Math.random() * 20); // 30-50s
+          g.bossActivateFrame = frame + g.nextRaverDelay;
           g.bossEndFrame = null;
           g.bossIndex = null;
         }
       }
-      // Activate boss
+      // Activate raver
       if (g.bossActivateFrame !== null && frame >= g.bossActivateFrame && g.bossEndFrame === null) {
         const aliveIdx = g.invaders.map((inv, i) => inv.alive ? i : -1).filter((i) => i >= 0);
         if (aliveIdx.length > 0) {
@@ -348,24 +349,33 @@ export default function SpaceInvadersGame() {
         }
         g.bossActivateFrame = null;
       }
-      // Boss active
+      // Raver active
       if (g.bossEndFrame !== null && g.bossIndex !== null) {
         const boss = g.invaders[g.bossIndex];
-        if (!boss || !boss.alive || frame >= g.bossEndFrame) {
+        const bossEnded = !boss || !boss.alive || frame >= g.bossEndFrame;
+        if (bossEnded) {
           if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
           g.bossEndFrame = null;
           g.bossIndex = null;
-        } else if (frame - g.bossLastShot > 60) {
-          g.enemyBullets.push({
-            x: boss.x + boss.width / 2 - 2,
-            y: boss.y + boss.height,
-            dy: INVADER_BULLET_SPEED * 0.5,
-            dx: 0,
-            homing: true,
-            color: "#ffff00",
-          });
-          g.bossLastShot = frame;
-          playEnemyShoot();
+          // Restart timer with 50% shorter delay each new raver
+          g.raverCount++;
+          g.nextRaverDelay = g.nextRaverDelay * 0.5;
+          g.bossActivateFrame = frame + g.nextRaverDelay;
+        } else {
+          // Only shoot if no active raver bomb exists
+          const hasActiveBomb = g.enemyBullets.some((b) => b.homing);
+          if (!hasActiveBomb && frame - g.bossLastShot > 30) {
+            g.enemyBullets.push({
+              x: boss.x + boss.width / 2 - 2,
+              y: boss.y + boss.height,
+              dy: INVADER_BULLET_SPEED * 0.5,
+              dx: 0,
+              homing: true,
+              color: "#ffff00",
+            });
+            g.bossLastShot = frame;
+            playEnemyShoot();
+          }
         }
       }
 
