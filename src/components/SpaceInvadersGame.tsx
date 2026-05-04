@@ -285,6 +285,10 @@ export default function SpaceInvadersGame() {
         setWon(g.won);
         return;
       }
+      if (pausedRef.current) {
+        animFrameRef.current = requestAnimationFrame(loop);
+        return;
+      }
 
       frameRef.current++;
       const frame = frameRef.current;
