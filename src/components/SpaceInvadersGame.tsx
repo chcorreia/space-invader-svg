@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren, playRaverKill, playTada } from "@/lib/sounds";
+import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren, playRaverKill, playTada, suspendAudio, resumeAudio } from "@/lib/sounds";
 
 function LifeIcon() {
   return (
