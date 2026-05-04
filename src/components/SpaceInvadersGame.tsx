@@ -416,6 +416,11 @@ export default function SpaceInvadersGame() {
         g.invaders = createInvaders();
         g.bullets = [];
         g.enemyBullets = [];
+        g.waveStartFrame = 0;
+        g.bossIndex = null;
+        g.bossActivateFrame = null;
+        g.bossEndFrame = null;
+        if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
       }
 
       // Stars
