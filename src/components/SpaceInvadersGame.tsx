@@ -11,6 +11,17 @@ function LifeIcon() {
   );
 }
 
+function toRoman(num: number): string {
+  const map: [number, string][] = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
+    [100, "C"], [90, "XC"], [50, "L"], [40, "XL"],
+    [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  let r = "", n = num;
+  for (const [v, s] of map) while (n >= v) { r += s; n -= v; }
+  return r;
+}
+
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 480;
 const PLAYER_WIDTH = 40;
@@ -64,6 +75,8 @@ interface GameState {
   won: boolean;
   playerRespawnTimer: number;
   stars: { x: number; y: number; size: number; speed: number }[];
+  wave: number;
+  baseSpeed: number;
 }
 
 function createStars(count: number) {
@@ -75,7 +88,7 @@ function createStars(count: number) {
   }));
 }
 
-function initGame(): GameState {
+function createInvaders(): (Entity & { row: number })[] {
   const invaders: (Entity & { row: number })[] = [];
   const startX = (CANVAS_WIDTH - (INVADER_COLS * (INVADER_WIDTH + INVADER_PADDING))) / 2;
   for (let row = 0; row < INVADER_ROWS; row++) {
@@ -90,9 +103,13 @@ function initGame(): GameState {
       });
     }
   }
+  return invaders;
+}
+
+function initGame(): GameState {
   return {
     player: { x: CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2, y: CANVAS_HEIGHT - 50, width: PLAYER_WIDTH, height: PLAYER_HEIGHT, alive: true },
-    invaders,
+    invaders: createInvaders(),
     bullets: [],
     enemyBullets: [],
     explosions: [],
@@ -104,6 +121,8 @@ function initGame(): GameState {
     won: false,
     playerRespawnTimer: 0,
     stars: createStars(80),
+    wave: 1,
+    baseSpeed: 1,
   };
 }
 
@@ -178,6 +197,7 @@ export default function SpaceInvadersGame() {
   const lastShotRef = useRef(0);
   const [displayScore, setDisplayScore] = useState(0);
   const [displayLives, setDisplayLives] = useState(3);
+  const [displayWave, setDisplayWave] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
   const [started, setStarted] = useState(false);
@@ -188,6 +208,7 @@ export default function SpaceInvadersGame() {
     lastShotRef.current = 0;
     setDisplayScore(0);
     setDisplayLives(3);
+    setDisplayWave(1);
     setGameOver(false);
     setWon(false);
     setStarted(false);
@@ -271,7 +292,7 @@ export default function SpaceInvadersGame() {
             inv.alive = false;
             bullet.y = -100;
             g.score += (INVADER_ROWS - inv.row) * 10;
-            g.invaderSpeed = 1 + (g.invaders.filter((i) => !i.alive).length / g.invaders.length) * 3;
+            g.invaderSpeed = g.baseSpeed * (1 + (g.invaders.filter((i) => !i.alive).length / g.invaders.length) * 3);
             const color = INVADER_COLORS[inv.row % INVADER_COLORS.length];
             g.explosions.push({ x: inv.x + inv.width / 2, y: inv.y + inv.height / 2, frame: 0, maxFrames: 12, color, size: 20 });
             playEnemyExplosion();
@@ -307,8 +328,16 @@ export default function SpaceInvadersGame() {
         if (inv.y + inv.height >= g.player.y) g.gameOver = true;
       }
 
-      // Win check
-      if (aliveInvaders.length === 0) g.won = true;
+      // Next wave
+      if (aliveInvaders.length === 0) {
+        g.wave++;
+        g.baseSpeed *= 1.05;
+        g.invaderSpeed = g.baseSpeed;
+        g.invaderDir = 1;
+        g.invaders = createInvaders();
+        g.bullets = [];
+        g.enemyBullets = [];
+      }
 
       // Stars
       for (const star of g.stars) {
@@ -366,6 +395,7 @@ export default function SpaceInvadersGame() {
 
       setDisplayScore(g.score);
       setDisplayLives(g.lives);
+      setDisplayWave(g.wave);
 
       animFrameRef.current = requestAnimationFrame(loop);
     };
@@ -394,6 +424,11 @@ export default function SpaceInvadersGame() {
           {Array.from({ length: displayLives }).map((_, i) => (
             <LifeIcon key={i} />
           ))}
+        </div>
+
+        <div className="absolute top-2 right-2 font-arcade text-xs text-neon-yellow"
+             style={{ textShadow: "0 0 10px hsl(60,100%,50%,0.8)" }}>
+          WAVE {toRoman(displayWave)}
         </div>
 
         {!started && (
