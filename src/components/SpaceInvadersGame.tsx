@@ -229,6 +229,10 @@ export default function SpaceInvadersGame() {
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
   const [started, setStarted] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [godMode, setGodMode] = useState(false);
+  const pausedRef = useRef(false);
+  const godModeRef = useRef(false);
 
   const resetGame = () => {
     gameRef.current = initGame();
@@ -245,6 +249,16 @@ export default function SpaceInvadersGame() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "g" || e.key === "G") {
+        godModeRef.current = !godModeRef.current;
+        setGodMode(godModeRef.current);
+        return;
+      }
+      if (e.key === "Escape") {
+        pausedRef.current = !pausedRef.current;
+        setPaused(pausedRef.current);
+        return;
+      }
       keysRef.current.add(e.key);
       if (e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") e.preventDefault();
     };
@@ -269,6 +283,10 @@ export default function SpaceInvadersGame() {
         if (g.stopSiren) { g.stopSiren(); g.stopSiren = null; }
         setGameOver(g.gameOver);
         setWon(g.won);
+        return;
+      }
+      if (pausedRef.current) {
+        animFrameRef.current = requestAnimationFrame(loop);
         return;
       }
 
@@ -405,7 +423,7 @@ export default function SpaceInvadersGame() {
       // Enemy bullet-player collision
       if (g.playerRespawnTimer > 0) {
         g.playerRespawnTimer--;
-      } else {
+      } else if (!godModeRef.current) {
         for (const bullet of g.enemyBullets) {
           if (collides(bullet, g.player)) {
             bullet.y = CANVAS_HEIGHT + 100;
@@ -426,8 +444,10 @@ export default function SpaceInvadersGame() {
       g.explosions = g.explosions.filter((e) => { e.frame++; return e.frame < e.maxFrames; });
 
       // Check invaders reaching player
-      for (const inv of aliveInvaders) {
-        if (inv.y + inv.height >= g.player.y) g.gameOver = true;
+      if (!godModeRef.current) {
+        for (const inv of aliveInvaders) {
+          if (inv.y + inv.height >= g.player.y) g.gameOver = true;
+        }
       }
 
       // Extra life every 5000 points
@@ -485,9 +505,11 @@ export default function SpaceInvadersGame() {
         if (isBoss && flashOn) ctx.restore();
       }
 
-      // Player (blink during respawn)
+      // Player (blink during respawn, transparent in god mode)
       if (g.playerRespawnTimer <= 0 || Math.floor(frame / 4) % 2 === 0) {
+        if (godModeRef.current) ctx.globalAlpha = 0.4;
         drawPlayer(ctx, g.player.x, g.player.y);
+        ctx.globalAlpha = 1;
       }
 
       // Explosions
@@ -583,6 +605,22 @@ export default function SpaceInvadersGame() {
               style={{ boxShadow: "0 0 15px hsl(120,100%,50%,0.3)" }}>
               PLAY AGAIN
             </button>
+          </div>
+        )}
+
+        {paused && started && !gameOver && !won && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+            <p className="font-arcade text-lg text-primary"
+               style={{ textShadow: "0 0 20px hsl(120,100%,50%,0.8)" }}>
+              GAME PAUSED
+            </p>
+          </div>
+        )}
+
+        {godMode && (
+          <div className="absolute bottom-2 right-2 font-arcade text-[8px] text-neon-yellow"
+               style={{ textShadow: "0 0 10px hsl(60,100%,50%,0.8)" }}>
+            GOD MODE
           </div>
         )}
       </div>
