@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren } from "@/lib/sounds";
+import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion, playSiren, playRaverKill } from "@/lib/sounds";
 
 function LifeIcon() {
   return (
@@ -381,13 +381,19 @@ export default function SpaceInvadersGame() {
 
       // Bullet-invader collision
       for (const bullet of g.bullets) {
-        for (const inv of g.invaders) {
+        for (let idx = 0; idx < g.invaders.length; idx++) {
+          const inv = g.invaders[idx];
           if (inv.alive && collides(bullet, inv)) {
+            const isRaver = g.bossIndex === idx && g.bossEndFrame !== null;
             inv.alive = false;
             bullet.y = -100;
             g.score += (INVADER_ROWS - inv.row) * 10;
+            if (isRaver) {
+              g.score += 50;
+              playRaverKill();
+            }
             g.invaderSpeed = g.baseSpeed * (1 + (g.invaders.filter((i) => !i.alive).length / g.invaders.length) * 3);
-            const color = INVADER_COLORS[inv.row % INVADER_COLORS.length];
+            const color = isRaver ? "#ffff00" : INVADER_COLORS[inv.row % INVADER_COLORS.length];
             g.explosions.push({ x: inv.x + inv.width / 2, y: inv.y + inv.height / 2, frame: 0, maxFrames: 12, color, size: 20 });
             playEnemyExplosion();
           }
