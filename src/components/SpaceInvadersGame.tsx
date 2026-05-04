@@ -166,7 +166,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, x: number, y: number) {
 }
 
 function drawInvader(ctx: CanvasRenderingContext2D, x: number, y: number, row: number, frame: number) {
-  const color = INVADER_COLORS[row % INVADER_COLORS.length];
+  const color = row === -1 ? "#ffff00" : INVADER_COLORS[row % INVADER_COLORS.length];
   ctx.fillStyle = color;
   const w = INVADER_WIDTH;
   const h = INVADER_HEIGHT;
