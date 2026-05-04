@@ -260,6 +260,23 @@ export default function SpaceInvadersGame() {
         if (pausedRef.current) suspendAudio(); else resumeAudio();
         return;
       }
+      if (e.key === ">" || e.key === ".") {
+        const g = gameRef.current;
+        g.baseSpeed *= 1.2;
+        g.invaderSpeed *= 1.2;
+        return;
+      }
+      if (e.key === "<" || e.key === ",") {
+        const g = gameRef.current;
+        g.baseSpeed *= 0.8;
+        g.invaderSpeed *= 0.8;
+        return;
+      }
+      if (e.key === "k" || e.key === "K") {
+        const g = gameRef.current;
+        for (const inv of g.invaders) inv.alive = false;
+        return;
+      }
       keysRef.current.add(e.key);
       if (e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") e.preventDefault();
     };
