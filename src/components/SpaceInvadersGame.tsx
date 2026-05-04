@@ -73,8 +73,8 @@ interface GameState {
   invaderSpeed: number;
   gameOver: boolean;
   won: boolean;
-  playerRespawnTimer: number;
-  stars: { x: number; y: number; size: number; speed: number }[];
+  wave: number;
+  baseSpeed: number;
 }
 
 function createStars(count: number) {
