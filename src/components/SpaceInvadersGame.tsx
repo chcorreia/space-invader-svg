@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { playPlayerShoot, playEnemyShoot, playPlayerExplosion, playEnemyExplosion } from "@/lib/sounds";
 
+function LifeIcon() {
+  return (
+    <svg width="20" height="15" viewBox="0 0 40 30" aria-label="life">
+      <polygon points="20,0 40,30 34,26 20,22 6,26 0,30" fill="#00ff00" />
+      <circle cx="20" cy="12" r="4" fill="#00ffff" />
+      <rect x="17" y="24" width="6" height="4" fill="#ff6600" />
+    </svg>
+  );
+}
+
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 480;
 const PLAYER_WIDTH = 40;
