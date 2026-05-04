@@ -58,6 +58,34 @@ export function playPlayerExplosion() {
   noise.stop(ctx.currentTime + 0.5);
 }
 
+export function playSiren(): () => void {
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  const gain = ctx.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.value = 600;
+  lfo.type = "sine";
+  lfo.frequency.value = 4; // uuweee modulation rate
+  lfoGain.gain.value = 250;
+  lfo.connect(lfoGain);
+  lfoGain.connect(osc.frequency);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(0.06, ctx.currentTime);
+  osc.start(ctx.currentTime);
+  lfo.start(ctx.currentTime);
+  return () => {
+    const t = ctx.currentTime;
+    gain.gain.cancelScheduledValues(t);
+    gain.gain.setValueAtTime(gain.gain.value, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    osc.stop(t + 0.06);
+    lfo.stop(t + 0.06);
+  };
+}
+
 export function playEnemyExplosion() {
   const ctx = getCtx();
   const bufferSize = ctx.sampleRate * 0.15;
