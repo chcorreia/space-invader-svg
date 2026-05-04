@@ -279,7 +279,21 @@ export default function SpaceInvadersGame() {
 
       // Move bullets
       g.bullets = g.bullets.filter((b) => { b.y += b.dy; return b.y > -BULLET_HEIGHT; });
-      g.enemyBullets = g.enemyBullets.filter((b) => { b.y += b.dy; return b.y < CANVAS_HEIGHT; });
+      const playerCx = g.player.x + PLAYER_WIDTH / 2;
+      const homingMaxDx = INVADER_BULLET_SPEED * 0.7; // 30% slower than... interpret: horizontal speed cap
+      g.enemyBullets = g.enemyBullets.filter((b) => {
+        if (b.homing) {
+          const targetDx = playerCx - (b.x + BULLET_WIDTH / 2);
+          const desired = Math.sign(targetDx) * Math.min(Math.abs(targetDx), homingMaxDx);
+          // smooth steering
+          b.dx = (b.dx ?? 0) + (desired - (b.dx ?? 0)) * 0.1;
+          b.x += b.dx;
+        } else if (b.dx) {
+          b.x += b.dx;
+        }
+        b.y += b.dy;
+        return b.y < CANVAS_HEIGHT && b.x > -20 && b.x < CANVAS_WIDTH + 20;
+      });
 
       // Invader movement
       if (frame % Math.max(1, Math.floor(30 / g.invaderSpeed)) === 0) {
